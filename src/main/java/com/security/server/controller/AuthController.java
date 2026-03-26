@@ -20,11 +20,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
+    private final AuthenticationManager authenticationManager;
     private final AuthService authService;
 
     @PostMapping("/register")
     public RegisterResponseDTO register(@RequestBody RegisterRequestDTO registerRequestDTO){
         authService.register(registerRequestDTO);
         return new RegisterResponseDTO("Registered successfully");
+    }
+
+    @PostMapping("/login")
+    public LoginResponseDTO login(@RequestBody LoginRequestDTO loginRequestDTO){
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequestDTO.getIdentifier(),
+                        loginRequestDTO.getPassword()
+                )
+        );
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        assert userDetails != null;
+        return new LoginResponseDTO("Login Successful", userDetails.getUsername());
     }
 }
