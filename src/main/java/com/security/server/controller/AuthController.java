@@ -5,6 +5,7 @@ import com.security.server.dto.LoginResponseDTO;
 import com.security.server.dto.RegisterRequestDTO;
 import com.security.server.dto.RegisterResponseDTO;
 import com.security.server.security.CustomUserDetails;
+import com.security.server.security.JwtService;
 import com.security.server.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +23,7 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final AuthService authService;
+    private final JwtService jwtService;
 
     @PostMapping("/register")
     public RegisterResponseDTO register(@RequestBody RegisterRequestDTO registerRequestDTO){
@@ -38,7 +40,7 @@ public class AuthController {
                 )
         );
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        assert userDetails != null;
-        return new LoginResponseDTO("Login Successful", userDetails.getUsername());
+        String token = jwtService.generateToken(userDetails.getUserId());
+        return new LoginResponseDTO(token);
     }
 }

@@ -47,4 +47,27 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
         return new CustomUserDetails(user, authorities);
     }
+
+    public UserDetails loadUserByID(Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Invalid user id"));
+
+        List<UserRole> userRoles = userRoleRepository.findByUser(user);
+
+        Set<GrantedAuthority> authorities = new HashSet<>();
+
+        for (UserRole userRole : userRoles) {
+            Role role = userRole.getRole();
+
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getRoleName()));
+
+            List<RolePermission> rolePermissions = rolePermissionRepository.findByRole(role);
+
+            for (RolePermission rp : rolePermissions) {
+                Permission permission = rp.getPermission();
+                authorities.add(new SimpleGrantedAuthority(permission.getName()));
+            }
+        }
+        return new CustomUserDetails(user, authorities);
+    }
 }
