@@ -52,13 +52,19 @@ public class AuthController {
     @PostMapping("/refresh")
     public LoginResponseDTO refresh(@RequestBody RefreshTokenRequest request) {
 
-        RefreshToken refreshToken = refreshTokenService.verifyToken(request.getRefreshToken());
+        RefreshToken oldToken = refreshTokenService.verifyToken(request.getRefreshToken());
 
-        String newAccessToken = jwtService.generateToken(refreshToken.getUserId());
+        Long userId = oldToken.getUserId();
+
+        refreshTokenService.deleteByToken(request.getRefreshToken());
+
+        String newAccessToken = jwtService.generateToken(userId);
+
+        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(userId);
 
         return new LoginResponseDTO(
                 newAccessToken,
-                refreshToken.getToken()
+                newRefreshToken.getToken()
         );
     }
 
